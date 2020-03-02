@@ -28,7 +28,7 @@ class ConvLSTM2D(tf.compat.v1.nn.rnn_cell.RNNCell):
         self.conv_ho = tf.keras.layers.Conv2D(self.filters, 3, kernel_initializer="he_normal", padding="same")
         self.conv_xg = tf.keras.layers.Conv2D(self.filters, 3, kernel_initializer="he_normal")
         self.conv_hg = tf.keras.layers.Conv2D(self.filters, 3, kernel_initializer="he_normal", padding="same")
-        #RECURRENT BATCH NORMALIZATION(https://arxiv.org/pdf/1603.09025.pdf)
+        #Recurrent Batch Normalization(https://arxiv.org/pdf/1603.09025.pdf)
         #チャンネル毎に標準化
         self.batch_xi = tf.keras.layers.BatchNormalization()
         self.batch_hi = tf.keras.layers.BatchNormalization()
