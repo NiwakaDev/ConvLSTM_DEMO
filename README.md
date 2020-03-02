@@ -1,3 +1,3 @@
 # ConvLSTM_DEMO
-自作ConvLSTMデモ
+<p>自作したConvLSTMのデモ</p>
 ターミナル上で、python main.pyを実行
