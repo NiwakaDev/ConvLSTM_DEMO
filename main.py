@@ -39,6 +39,7 @@ class ConvLSTM2D(tf.compat.v1.nn.rnn_cell.RNNCell):
         self.batch_xg = tf.keras.layers.BatchNormalization()
         self.batch_hg = tf.keras.layers.BatchNormalization()
         self.batch_cell = tf.keras.layers.BatchNormalization()
+        #self.build=Trueいるらしい
         self.build = True
     
     @property
