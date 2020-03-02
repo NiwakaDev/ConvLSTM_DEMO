@@ -54,6 +54,7 @@ class ConvLSTM2D(tf.compat.v1.nn.rnn_cell.RNNCell):
     
     def call(self, inputs, states, mask=None, training=True):
         cell, hidden = states
+        #Recurrent Batch Normalizationは、フレーム毎に標準化を行うはず。。。。。。。。。
         f = tf.nn.sigmoid(self.batch_xf(self.conv_xf(inputs)) + self.batch_hf(self.conv_hf(hidden)))
         i = tf.nn.sigmoid(self.batch_xi(self.conv_xi(inputs)) + self.batch_hi(self.conv_hi(hidden)))
         o = tf.nn.sigmoid(self.batch_xo(self.conv_xo(inputs)) + self.batch_hi(self.conv_ho(hidden)))
