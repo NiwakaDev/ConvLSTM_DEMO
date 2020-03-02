@@ -82,4 +82,4 @@ if __name__ == '__main__':
 
     #4フレーム以降の値に依存していないかをチェックする。
     #4フレーム以降の値をRNNに適用していた場合、data1とdata2では値は異なるはず。。。
-    print(tf.math.equal(convLSTM(data1, mask=mask), convLSTM(data2, mask=mask)))
+    print(tf.math.equal(convLSTM(data1, mask=mask1), convLSTM(data2, mask=mask2)))
