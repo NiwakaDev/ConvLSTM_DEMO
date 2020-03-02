@@ -1,3 +1,6 @@
+import tensorflow as tf
+import numpy as np
+
 #ConvLSTM(https://arxiv.org/pdf/1506.04214v1.pdf)
 class ConvLSTM2D(tf.compat.v1.nn.rnn_cell.RNNCell):
 
