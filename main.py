@@ -81,5 +81,5 @@ if __name__ == '__main__':
     convLSTM = tf.keras.layers.RNN(ConvLSTM2D([3, 3, 3], 32), return_sequences=False)
 
     #4フレーム以降の値に依存していないかをチェックする。
-    #4フレーム以降の値をRNNに適用していた場合、data1とdata2では値は異なるはず。。。
+    #4フレーム以降の値をRNNに適用していた場合、data1とdata2では値は異なってしまうので、その時はmaskは適用されていないことになるはず。
     print(tf.math.equal(convLSTM(data1, mask=mask1), convLSTM(data2, mask=mask2)))
