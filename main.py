@@ -21,6 +21,7 @@ class ConvLSTM2D(tf.compat.v1.nn.rnn_cell.RNNCell):
     def build(self, input_shape):
         
         #tf.keras.layers.Conv2Dに対して、activationを指定しない場合、活性化関数を使用しないことになる。
+        #とりあえす、フィルターの形状を[3,3]で固定
         self.conv_xi = tf.keras.layers.Conv2D(self.filters, 3, strides=self.strides, kernel_initializer='glorot_uniform')
         self.conv_hi = tf.keras.layers.Conv2D(self.filters, 3, strides=[1,1], kernel_initializer='glorot_uniform', padding="same")
         self.conv_xf = tf.keras.layers.Conv2D(self.filters, 3, strides=self.strides, kernel_initializer='glorot_uniform')
