@@ -60,7 +60,7 @@ class ConvLSTM2D(tf.compat.v1.nn.rnn_cell.RNNCell):
         i = tf.nn.sigmoid(self.batch_xi(self.conv_xi(inputs)) + self.batch_hi(self.conv_hi(hidden)))
         o = tf.nn.sigmoid(self.batch_xo(self.conv_xo(inputs)) + self.batch_hi(self.conv_ho(hidden)))
         g = tf.nn.tanh(self.batch_xg(self.conv_xg(inputs)) + self.batch_hg(self.conv_hg(hidden)))
-        #statesの更新!!       
+        #statesの更新   
         new_cell      = f * cell + (i * g)
         new_cell      = self.batch_cell(new_cell, training=training)
         
