@@ -50,9 +50,8 @@ class ConvLSTM2D(tf.compat.v1.nn.rnn_cell.RNNCell):
     def state_size(self):
         return self._state_size   
 
+    #maskを次の層に伝えるために、この関数は必要らしい。(この辺りのバックエンドの動きをよく分かっていません。)
     def compute_mask(self, inputs, mask=None):
-        # Just pass the received mask from previous layer, to the next layer or 
-        # manipulate it if this layer changes the shape of the input
         return mask
     
     def call(self, inputs, states, mask=None, training=True):
