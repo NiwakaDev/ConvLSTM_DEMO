@@ -2,6 +2,7 @@ import tensorflow as tf
 import numpy as np
 
 #ConvLSTM(https://arxiv.org/pdf/1506.04214v1.pdf)
+#論文の(3)式を実装
 class ConvLSTM2D(tf.compat.v1.nn.rnn_cell.RNNCell):
 
     def __init__(self, units, filters, strides,**kwargs):
