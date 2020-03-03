@@ -1,8 +1,16 @@
 import tensorflow as tf
 import numpy as np
-
+#https://www.tensorflow.org/api_docs/python/tf/compat/v1/nn/rnn_cell/LSTMCell
 #ConvLSTM(https://arxiv.org/pdf/1506.04214v1.pdf)
 #論文の(3)式を実装
+
+#https://github.com/tensorflow/tensorflow/blob/v2.1.0/tensorflow/python/ops/rnn_cell_impl.py#L804-L1081のLSTMCellを参考にしました。
+#上のgithubのURLを大雑把に眺めたところ、
+#1.hiddenとcellの形状をtf.compat.v1.nn.rnn_cell.LSTMStateTuple()で指定する。
+#2.call関数の引数statesに、hiddenとcellが格納されるらしい。
+#3.build関数には、self.build=Trueを必ず書く。
+#4.新しいhiddenとcellは、tf.compat.v1.nn.rnn_cell.LSTMStateTuple(new_cell, new_hidden)で登録する。
+#上の4つを守れば、LSTMCellは自由にカスタマイズしても良さそうだと思った。
 class ConvLSTM2D(tf.compat.v1.nn.rnn_cell.RNNCell):
 
     def __init__(self, units, filters, strides,**kwargs):
