@@ -4,32 +4,31 @@ import numpy as np
 #ConvLSTM(https://arxiv.org/pdf/1506.04214v1.pdf)
 class ConvLSTM2D(tf.compat.v1.nn.rnn_cell.RNNCell):
 
-    def __init__(self, units, filters, **kwargs):
+    def __init__(self, units, filters, strides,**kwargs):
         super(ConvLSTM2D, self).__init__(**kwargs)
         self.filters = filters
+        self.strides = strides
         #units->(height, width, channels)
         #strides=[1, 1]、paddingなしの場合のhiddenの形状計算
-        units[0] = units[0] - 3 + 1
-        units[1] = units[1] - 3 + 1
+        units[0] = (units[0] - 3)//self.strides[0] + 1
+        units[1] = (units[1] - 3)//self.strides[1] + 1
         units[2] = self.filters
         state_size  = tf.TensorShape(units)
         self._state_size = tf.compat.v1.nn.rnn_cell.LSTMStateTuple(state_size, state_size)
         self._output_size = tf.TensorShape(state_size)
-
+    
     def build(self, input_shape):
         
-        #重みの初期値:Heの初期値 he_normal(https://medium.com/@prateekvishnu/xavier-and-he-normal-he-et-al-initialization-8e3d7a087528)
         #tf.keras.layers.Conv2Dに対して、activationを指定しない場合、活性化関数を使用しないことになる。
-        self.conv_xi = tf.keras.layers.Conv2D(self.filters, 3, kernel_initializer="he_normal")
-        self.conv_hi = tf.keras.layers.Conv2D(self.filters, 3, kernel_initializer="he_normal", padding="same")
-        self.conv_xf = tf.keras.layers.Conv2D(self.filters, 3, kernel_initializer="he_normal")
-        self.conv_hf = tf.keras.layers.Conv2D(self.filters, 3, kernel_initializer="he_normal", padding="same")
-        self.conv_xo = tf.keras.layers.Conv2D(self.filters, 3, kernel_initializer="he_normal")
-        self.conv_ho = tf.keras.layers.Conv2D(self.filters, 3, kernel_initializer="he_normal", padding="same")
-        self.conv_xg = tf.keras.layers.Conv2D(self.filters, 3, kernel_initializer="he_normal")
-        self.conv_hg = tf.keras.layers.Conv2D(self.filters, 3, kernel_initializer="he_normal", padding="same")
-        #Recurrent Batch Normalization(https://arxiv.org/pdf/1603.09025.pdf)
-        #チャンネル毎に標準化
+        self.conv_xi = tf.keras.layers.Conv2D(self.filters, 3, strides=self.strides, kernel_initializer='glorot_uniform')
+        self.conv_hi = tf.keras.layers.Conv2D(self.filters, 3, strides=[1,1], kernel_initializer='glorot_uniform', padding="same")
+        self.conv_xf = tf.keras.layers.Conv2D(self.filters, 3, strides=self.strides, kernel_initializer='glorot_uniform')
+        self.conv_hf = tf.keras.layers.Conv2D(self.filters, 3, strides=[1,1], kernel_initializer='glorot_uniform', padding="same")
+        self.conv_xo = tf.keras.layers.Conv2D(self.filters, 3, strides=self.strides, kernel_initializer='glorot_uniform')
+        self.conv_ho = tf.keras.layers.Conv2D(self.filters, 3, strides=[1,1], kernel_initializer='glorot_uniform', padding="same")
+        self.conv_xg = tf.keras.layers.Conv2D(self.filters, 3, strides=self.strides, kernel_initializer='glorot_uniform')
+        self.conv_hg = tf.keras.layers.Conv2D(self.filters, 3, strides=[1,1], kernel_initializer='glorot_uniform', padding="same")
+        #RECURRENT BATCH NORMALIZATION(https://arxiv.org/pdf/1603.09025.pdf)
         self.batch_xi = tf.keras.layers.BatchNormalization()
         self.batch_hi = tf.keras.layers.BatchNormalization()
         self.batch_xf = tf.keras.layers.BatchNormalization()
@@ -39,7 +38,6 @@ class ConvLSTM2D(tf.compat.v1.nn.rnn_cell.RNNCell):
         self.batch_xg = tf.keras.layers.BatchNormalization()
         self.batch_hg = tf.keras.layers.BatchNormalization()
         self.batch_cell = tf.keras.layers.BatchNormalization()
-        #self.build=Trueいるらしい
         self.build = True
     
     @property
@@ -50,16 +48,17 @@ class ConvLSTM2D(tf.compat.v1.nn.rnn_cell.RNNCell):
         return self._state_size   
 
     def compute_mask(self, inputs, mask=None):
+        # Just pass the received mask from previous layer, to the next layer or 
+        # manipulate it if this layer changes the shape of the input
         return mask
     
     def call(self, inputs, states, mask=None, training=True):
         cell, hidden = states
-        #Recurrent Batch Normalizationは、フレーム毎に標準化を行うはず。。。。。。。。。
         f = tf.nn.sigmoid(self.batch_xf(self.conv_xf(inputs)) + self.batch_hf(self.conv_hf(hidden)))
         i = tf.nn.sigmoid(self.batch_xi(self.conv_xi(inputs)) + self.batch_hi(self.conv_hi(hidden)))
         o = tf.nn.sigmoid(self.batch_xo(self.conv_xo(inputs)) + self.batch_hi(self.conv_ho(hidden)))
         g = tf.nn.tanh(self.batch_xg(self.conv_xg(inputs)) + self.batch_hg(self.conv_hg(hidden)))
-        #statesの更新       
+        #statesの更新!!       
         new_cell      = f * cell + (i * g)
         new_cell      = self.batch_cell(new_cell, training=training)
         
