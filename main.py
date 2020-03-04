@@ -21,7 +21,6 @@ class ConvLSTM2D(tf.compat.v1.nn.rnn_cell.RNNCell):
         #units->(height, width, channels)
         #strides=[1, 1]、paddingなしの場合のhiddenの形状計算
         #inputsに対して畳み込みを適用した後の次元とhiddenの次元を合わせるために調整
-        #
         units[0] = (units[0] - 3)//self.strides[0] + 1
         units[1] = (units[1] - 3)//self.strides[1] + 1
         units[2] = self.filters
@@ -35,24 +34,44 @@ class ConvLSTM2D(tf.compat.v1.nn.rnn_cell.RNNCell):
         #とりあえす、フィルターの形状を[3,3]で固定
         self.conv_xi = tf.keras.layers.Conv2D(self.filters, 3, strides=self.strides, kernel_initializer='glorot_uniform')
         self.conv_hi = tf.keras.layers.Conv2D(self.filters, 3, strides=[1,1], kernel_initializer='glorot_uniform', padding="same")
+        self.conv_ci = tf.keras.layers.Conv2D(self.filters, 3, strides=[1,1], kernel_initializer='glorot_uniform', padding="same")
+
         self.conv_xf = tf.keras.layers.Conv2D(self.filters, 3, strides=self.strides, kernel_initializer='glorot_uniform')
         self.conv_hf = tf.keras.layers.Conv2D(self.filters, 3, strides=[1,1], kernel_initializer='glorot_uniform', padding="same")
+        self.conv_cf = tf.keras.layers.Conv2D(self.filters, 3, strides=[1,1], kernel_initializer='glorot_uniform', padding="same")
+
         self.conv_xo = tf.keras.layers.Conv2D(self.filters, 3, strides=self.strides, kernel_initializer='glorot_uniform')
         self.conv_ho = tf.keras.layers.Conv2D(self.filters, 3, strides=[1,1], kernel_initializer='glorot_uniform', padding="same")
+        self.conv_co = tf.keras.layers.Conv2D(self.filters, 3, strides=[1,1], kernel_initializer='glorot_uniform', padding="same")
+
         self.conv_xg = tf.keras.layers.Conv2D(self.filters, 3, strides=self.strides, kernel_initializer='glorot_uniform')
         self.conv_hg = tf.keras.layers.Conv2D(self.filters, 3, strides=[1,1], kernel_initializer='glorot_uniform', padding="same")
+        self.conv_cg = tf.keras.layers.Conv2D(self.filters, 3, strides=[1,1], kernel_initializer='glorot_uniform', padding="same")
+
         #RECURRENT BATCH NORMALIZATION(https://arxiv.org/pdf/1603.09025.pdf)
         self.batch_xi = tf.keras.layers.BatchNormalization()
         self.batch_hi = tf.keras.layers.BatchNormalization()
+        self.batch_ci = tf.keras.layers.BatchNormalization()
+
         self.batch_xf = tf.keras.layers.BatchNormalization()
         self.batch_hf = tf.keras.layers.BatchNormalization()
+        self.batch_cf = tf.keras.layers.BatchNormalization()
+
         self.batch_xo = tf.keras.layers.BatchNormalization()
         self.batch_ho = tf.keras.layers.BatchNormalization()
+        self.batch_co = tf.keras.layers.BatchNormalization()
+
         self.batch_xg = tf.keras.layers.BatchNormalization()
         self.batch_hg = tf.keras.layers.BatchNormalization()
+        self.batch_cg = tf.keras.layers.BatchNormalization()
+
         self.batch_cell = tf.keras.layers.BatchNormalization()
         self.build = True
-    
+        self.b_i = self.add_weight(shape=[self.filters,], initializer = tf.keras.initializers.he_normal(), trainable=True, name="bf")
+        self.b_f = self.add_weight(shape=[self.filters,], initializer = tf.keras.initializers.he_normal(), trainable=True, name="bi")
+        self.b_o = self.add_weight(shape=[self.filters,], initializer = tf.keras.initializers.he_normal(), trainable=True, name="bo")
+        self.b_g = self.add_weight(shape=[self.filters,], initializer = tf.keras.initializers.he_normal(), trainable=True, name="bg")
+      
     @property
     def output_size(self):
         return self._output_size
@@ -66,10 +85,10 @@ class ConvLSTM2D(tf.compat.v1.nn.rnn_cell.RNNCell):
     
     def call(self, inputs, states, mask=None, training=True):
         cell, hidden = states
-        f = tf.nn.sigmoid(self.batch_xf(self.conv_xf(inputs)) + self.batch_hf(self.conv_hf(hidden)))
-        i = tf.nn.sigmoid(self.batch_xi(self.conv_xi(inputs)) + self.batch_hi(self.conv_hi(hidden)))
-        o = tf.nn.sigmoid(self.batch_xo(self.conv_xo(inputs)) + self.batch_hi(self.conv_ho(hidden)))
-        g = tf.nn.tanh(self.batch_xg(self.conv_xg(inputs)) + self.batch_hg(self.conv_hg(hidden)))
+        f = tf.nn.sigmoid(self.batch_xf(self.conv_xf(inputs), training=training) + self.batch_hf(self.conv_hf(hidden), training=training) + self.batch_cf(self.conv_hf(hidden), training=training) + self.b_f)
+        i = tf.nn.sigmoid(self.batch_xi(self.conv_xi(inputs), training=training) + self.batch_hi(self.conv_hi(hidden), training=training) + self.batch_ci(self.conv_hf(hidden), training=training) + self.b_i)
+        o = tf.nn.sigmoid(self.batch_xo(self.conv_xo(inputs), training=training) + self.batch_ho(self.conv_ho(hidden), training=training) + self.batch_co(self.conv_hf(hidden), training=training) + self.b_o)
+        g = tf.nn.tanh(self.batch_xg(self.conv_xg(inputs), training=training) + self.batch_hg(self.conv_hg(hidden), training=training) + self.batch_cg(self.conv_hf(hidden), training=training) + self.b_g)
         #statesの更新   
         new_cell      = f * cell + (i * g)
         new_cell      = self.batch_cell(new_cell, training=training)
