@@ -5,7 +5,7 @@ import numpy as np
 #論文の(3)式を実装
 
 #https://github.com/tensorflow/tensorflow/blob/v2.1.0/tensorflow/python/ops/rnn_cell_impl.py#L804-L1081のLSTMCellを参考にしました。
-#上のgithubのURLを大雑把に眺めたところ、
+#上のgithubに記載されているLSTMCellを大雑把に眺めたところ、
 #1.hiddenとcellの形状をtf.compat.v1.nn.rnn_cell.LSTMStateTuple()で指定する。
 #2.call関数の引数statesに、hiddenとcellが格納されるらしい。
 #3.build関数には、self.build=Trueを必ず書く。
@@ -13,6 +13,7 @@ import numpy as np
 #上の4つを守れば、LSTMCellは自由にカスタマイズしても良さそうだと思った。
 class ConvLSTM2D(tf.compat.v1.nn.rnn_cell.RNNCell):
 
+    #__init__関数に渡されるunitsには、inputの形状を入力する。
     def __init__(self, units, filters, strides,**kwargs):
         super(ConvLSTM2D, self).__init__(**kwargs)
         self.filters = filters
