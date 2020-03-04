@@ -89,7 +89,7 @@ if __name__ == '__main__':
     data2 = np.concatenate([data_l, data_r],1)
     mask2 = tf.cast([[True, True, True, False, False]], tf.bool)
     #シーケンスの最後尾だけ出力(1フレームだけ)
-    convLSTM = tf.keras.layers.RNN(ConvLSTM2D([3, 3, 3], 32), return_sequences=False)
+    convLSTM = tf.keras.layers.RNN(ConvLSTM2D([3, 3, 3], 32, [1, 1]), return_sequences=False)
 
     #4フレーム以降の値に依存していないかをチェックする。
     #4フレーム以降の値をRNNに適用していた場合、data1とdata2では値は異なってしまうので、その時はmaskは適用されていないことになるはず。
