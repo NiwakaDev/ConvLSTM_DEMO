@@ -20,7 +20,7 @@ class ConvLSTM2D(tf.compat.v1.nn.rnn_cell.RNNCell):
         self.strides = strides
         #units->(height, width, channels)
         #strides=[1, 1]、paddingなしの場合のhiddenの形状計算
-        #inputsを畳み込みを適用した後の次元とhiddenの次元を合わせるために、調整
+        #inputsに対して畳み込みを適用した後の次元とhiddenの次元を合わせるために調整
         #
         units[0] = (units[0] - 3)//self.strides[0] + 1
         units[1] = (units[1] - 3)//self.strides[1] + 1
